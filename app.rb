@@ -23,11 +23,17 @@ end # module
 
 __END__
 @@layout
+<html>
+<head>
+ <title>Togetter2Text</title>
+</head>
+<body>
 <h1>Togetter2Text</h1>
 <hr>
 <%= yield %>
 </hr>
-
+</body>
+</html>
 
 @@index
 <form action="extract" method="post">

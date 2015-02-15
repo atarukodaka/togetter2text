@@ -34,7 +34,7 @@ module Togetter2Text
       doc = Nokogiri::HTML(f)
       tweets << get_tweets_from_doc(doc)
 
-      more_button = doc.css('.more_btn')       # 「残りを読む：ボタン
+      more_button = doc.css('.more_tweet_box')       # 「残りを読む：ボタン
 
       ## 続きボタンがある場合は読み込み、ない場合は終了
       if more_button.empty?
@@ -93,9 +93,8 @@ if __FILE__ == $0
   t2t = Togetter2Text::Extractor.new
   url = ARGV[0] or raise "specify togetter url"
 
-  p t2t.get_title(url)
-
-#  t2t.get_texts(url).each {|tweet| puts tweet}
+#  p t2t.get_title(url)
+  t2t.get_texts(url).each {|tweet| puts tweet}
 end
 
 __END__
