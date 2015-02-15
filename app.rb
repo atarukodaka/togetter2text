@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'sinatra/base'
 require 'sinatra/reloader'
 
@@ -14,15 +15,17 @@ module Togetter2Text
     end
     get '/li/:togetter_id' do
       raise "invalid togetter id" unless params["togetter_id"] =~ /^\d+$/
-      tg2t = Togetter2Text::Extractor.new
+      tg2t = Togetter2Text::Extractor.new(params['togetter_id'])
       url = "http://togetter.com/li/#{params['togetter_id']}"
       erb tg2t.get_texts(url).join("<br>")
     end
     post '/extract' do
       #url = "http://togetter.com/li/782106"
-      url = h(params['url'])
-      tg2t = Togetter2Text::Extractor.new
-      erb tg2t.get_texts(url).join("<br>")
+      tg2t = Togetter2Text::Extractor.new(params['url_or_id'])
+      text = erb tg2t.get_texts.join("<br>")
+      date = Time.now.strftime("%Y/%m/%d")
+      title = tg2t.title
+      erb :text, locals: {date: date, title: title, content: text}
     end
   end # class
 end # module
@@ -34,16 +37,23 @@ __END__
  <title>Togetter2Text</title>
 </head>
 <body>
-<h1>Togetter2Text</h1>
-<hr>
 <%= yield %>
-</hr>
 </body>
 </html>
-
 @@index
+<h1>Togetter2Text</h1>
+<hr>
 <form action="extract" method="post">
-<input type="text" name="url" size=80>
+Togetter ID or URL: <input type="text" name="url_or_id" size=80>
 <input type="submit">
 </form>
+</hr>
+@@text
+title: <%= title %><br>
+date: <%= date %><br>
+category: <br>
+<br>
+<%= content %>
+
+
 

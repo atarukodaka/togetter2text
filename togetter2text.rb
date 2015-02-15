@@ -11,27 +11,33 @@ require 'net/http'
 ################################################################
 module Togetter2Text
   class Extractor
-    def get_tweets_from_doc(doc)
-      doc.xpath('//li[@class="list_item"]//div[@class="tweet"]').map(&:text)
-    end
-    def get_title(url)
-      Nokogiri::HTML(open(url)).title
-    end
-    def get_texts(togetter_url)
+    attr_reader :title
+    def initialize(url_or_id)
       # 引数から togetter ID を抽出する
-      if togetter_url =~ %r{http://[w\.]*togetter.com/li/(\d+)} 
-        togetter_id = $1
+      if url_or_id =~ /^(\d+)$/
+        @togetter_id = $1
+      elsif url_or_id =~ %r{http://[w\.]*togetter.com/li/(\d+)} 
+        @togetter_id = $1
       else
         raise "invalid url for togetter. it must be 'http://togetter.com/li/[0-9]+'"
       end
-      more_url = "http://togetter.com/api/moreTweets/#{togetter_id}"
-      $stderr.puts "togetter: #{togetter_url}\n  for more tweets: #{more_url}"
+      @togetter_url = "http://togetter.com/li/#{@togetter_id}"
+      @more_url = "http://togetter.com/api/moreTweets/#{@togetter_id}"
+      @title = ""
 
+      $stderr.puts "togetter: #{@togetter_url}\n  for more tweets: #{@more_url}"
+    end
+      
+    def get_tweets_from_doc(doc)
+      doc.xpath('//li[@class="list_item"]//div[@class="tweet"]').map(&:text)
+    end
+    def get_texts
       # ツイートを抽出。まず最初のページから
       tweets = []                              # ツイートテキスト保存用
-      f = open(togetter_url)
+      f = open(@togetter_url)
       meta = f.meta                            # 後で csrf_secret を取り出すため
       doc = Nokogiri::HTML(f)
+      @title = doc.title
       tweets << get_tweets_from_doc(doc)
 
       more_button = doc.css('.more_tweet_box')       # 「残りを読む：ボタン
@@ -58,7 +64,7 @@ module Togetter2Text
       $stderr.puts "csrf_token: #{csrf_token}, crsf_secret: #{cookie['csrf_secret']}"
 
       body_text = nil
-      uri = URI.parse(more_url)
+      uri = URI.parse(@more_url)
       Net::HTTP.start(uri.host, uri.port){|http|
         header = {
           "Content-Type" =>"application/x-www-form-urlencoded; charset=UTF-8",
@@ -75,7 +81,7 @@ module Togetter2Text
       page = 2
       while !doc.xpath('//div[@class="pagenation"]/a[@rel="next"]').empty?
         $stderr.puts "...reading page #{page}..."
-        url = "#{togetter_url}?page=#{page}"
+        url = "#{@togetter_url}?page=#{page}"
         doc = Nokogiri.HTML(open(url))
         tweets << get_tweets_from_doc(doc)
         page += 1
@@ -85,16 +91,14 @@ module Togetter2Text
   end
 end
 
-
-
 ################################################################
 
 if __FILE__ == $0
-  t2t = Togetter2Text::Extractor.new
   url = ARGV[0] or raise "specify togetter url"
+#  id = "781477"
 
-#  p t2t.get_title(url)
-  t2t.get_texts(url).each {|tweet| puts tweet}
+  t2t = Togetter2Text::Extractor.new(url)
+  puts t2t.get_texts.join("\n")
 end
 
 __END__
