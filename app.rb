@@ -22,7 +22,7 @@ module Togetter2Text
     post '/extract' do
       #url = "http://togetter.com/li/782106"
       tg2t = Togetter2Text::Extractor.new(params['url_or_id'])
-      text = erb tg2t.get_texts.join("<br>")
+      text = tg2t.get_texts.join("\n")
       date = Time.now.strftime("%Y/%m/%d")
       title = tg2t.title
       erb :text, locals: {date: date, title: title, content: text}
@@ -49,11 +49,11 @@ Togetter ID or URL: <input type="text" name="url_or_id" size=80>
 </form>
 </hr>
 @@text
-title: <%= title %><br>
-date: <%= date %><br>
-category: <br>
-<br>
+<pre>
+title: <%= title %>
+date: <%= date %>
+category: 
+
 <%= content %>
-
-
+</pre>
 
