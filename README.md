@@ -1,3 +1,6 @@
 ## What't This
 
-the Things to extract text only from togetter (http://togetter.com/).
+The THINGS(Yatsu) to extract text only from togetter (http://togetter.com/).
+
+## Examples
+see https://togetter2text.herokuapp.com
