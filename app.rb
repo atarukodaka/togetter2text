@@ -12,6 +12,12 @@ module Togetter2Text
     get '/' do
       erb :index
     end
+    get '/li/:togetter_id' do
+      raise "invalid togetter id" unless params["togetter_id"] =~ /^\d+$/
+      tg2t = Togetter2Text::Extractor.new
+      url = "http://togetter.com/li/#{params['togetter_id']}"
+      erb tg2t.get_texts(url).join("<br>")
+    end
     post '/extract' do
       #url = "http://togetter.com/li/782106"
       url = h(params['url'])
