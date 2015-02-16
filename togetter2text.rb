@@ -12,6 +12,8 @@ require 'net/http'
 
 ################################################################
 module Togetter2Text
+  VERSION = "0.0.1"
+  
   class Extractor
     attr_reader :title
     def initialize(url_or_id)
