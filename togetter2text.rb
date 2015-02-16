@@ -6,6 +6,8 @@ require 'kconv'
 require 'uri'
 require 'net/http'
 
+#require 'pry-byebug'
+
 # thx to http://h3poteto.hatenablog.com/entry/2013/10/20/135403
 
 ################################################################
@@ -29,7 +31,20 @@ module Togetter2Text
     end
       
     def get_tweets_from_doc(doc)
-      doc.xpath('//li[@class="list_item"]//div[@class="tweet"]').map(&:text)
+      #doc.xpath('//li[@class="list_item"]//div[@class="tweet"]').map(&:text)
+      tweets = []
+      doc.xpath('//li[@class="list_item"]//div[@class="tweet"]').each do |elem|
+        text = ""
+        elem.children.each do |elem|
+          if elem.name == 'a'
+            text << "[#{elem.attribute('href')}](#{elem.text})"
+          else
+            text << elem.text
+          end
+        end
+        tweets << text
+      end
+      return tweets
     end
     def get_texts
       # ツイートを抽出。まず最初のページから
@@ -38,7 +53,8 @@ module Togetter2Text
       meta = f.meta                            # 後で csrf_secret を取り出すため
       doc = Nokogiri::HTML(f)
       @title = doc.title
-      tweets << get_tweets_from_doc(doc)
+      #binding.pry
+      tweets.push(get_tweets_from_doc(doc))
 
       more_button = doc.css('.more_tweet_box')       # 「残りを読む：ボタン
 
@@ -75,7 +91,7 @@ module Togetter2Text
         body_text = response.body.toutf8
       }
       doc = Nokogiri::HTML(body_text)
-      tweets << get_tweets_from_doc(doc)
+      tweets.push(get_tweets_from_doc(doc))
 
       ## 残りのページがあれば読む (div.pagenation)
       page = 2
@@ -83,10 +99,11 @@ module Togetter2Text
         $stderr.puts "...reading page #{page}..."
         url = "#{@togetter_url}?page=#{page}"
         doc = Nokogiri.HTML(open(url))
-        tweets << get_tweets_from_doc(doc)
+        tweets.push(get_tweets_from_doc(doc))
         page += 1
       end
-      tweets.flatten    # 保存したツイートテキストを返す
+      #tweets.flatten    # 保存したツイートテキストを返す
+      tweets
     end
   end
 end
