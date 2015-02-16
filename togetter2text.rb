@@ -39,7 +39,7 @@ module Togetter2Text
         text = ""
         elem.children.each do |elem|
           if elem.name == 'a'
-            text << "[#{elem.attribute('href')}](#{elem.text})"
+            text << "[#{elem.text}](#{elem.attribute('href')})"
           else
             text << elem.text
           end
